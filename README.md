@@ -13,38 +13,64 @@ A chat interface based on `llama.cpp` for running Alpaca models. Entirely self-h
 
 ## Getting started
 
-Setting up Serge is very easy. TLDR for running it with Alpaca 7B:
-
+Setting up Serge is very easy. Starting it up can be done in a single command:
 ```
-git clone https://github.com/nsarrazin/serge.git && cd serge
-
-cp .env.sample .env
-
-docker compose up -d
-docker compose exec api python3 /usr/src/app/utils/download.py tokenizer 7B
+docker run -d -v weights:/usr/src/app/weights -v datadb:/data/db/ -p 8008:8008 ghcr.io/nsarrazin/serge:latest
 ```
 
-(You can pass `7B 13B 30B` as an argument to download multiple models.)
+Then just go to http://localhost:8008/ !
 
-Then just go to http://localhost:8008/ and you're good to go!
+#### Windows
+Make sure you have docker desktop installed, WSL2 configured and enough free RAM to run models. (see below)
+
+#### Kubernetes & docker compose
+
+Setting up Serge on Kubernetes or docker compose can be found in the wiki: https://github.com/nsarrazin/serge/wiki/Integrating-Serge-in-your-orchestration#kubernetes-example
 
 ## Models
 
-Currently only the 7B, 13B and 30B alpaca models are supported. There's a download script for downloading them inside of the container, described above.
+Currently only the 7B, 713B and 30B alpaca models are supported. If you have existing weights from another project you can add them to the `serge_weights` volume using `docker cp`.
 
-If you have existing weights from another project you can add them to the `api/weights` folder and they will be automatically copied on build.
+### :warning: A note on _memory usage_
+
+llama will just crash if you don't have enough available memory for your model.
+
+- 7B requires about 4.5GB of free RAM
+- 13B requires about 12GB free
+- 30B requires about 20GB free
+
+### Compatible CPUS
+Currently Serge requires a CPU compatible with AVX2 instructions. Try `lscpu | grep avx2` in a shell, and if this returns nothing then your CPU is incompatible for now.
 
 ## Support
 
 Feel free to join the discord if you need help with the setup: https://discord.gg/62Hc6FEYQH
 
+
+## Contributing
+
+Serge is always open for contributions! If you catch a bug or have a feature idea, feel free to open an issue or a PR.
+
+If you want to run Serge in development mode (with hot-module reloading for svelte & autoreload for FastAPI) you can do so like this:
+
+```
+git clone https://github.com/nsarrazin/serge.git
+DOCKER_BUILDKIT=1 docker compose -f docker-compose.dev.yml up -d --build
+```
+
+You can test the production image with 
+
+```
+DOCKER_BUILDKIT=1 docker compose up -d --build
+```
+
 ## What's next
 
 - [x] Front-end to interface with the API
 - [x] Pass model parameters when creating a chat
+- [x] Manager for model files
+- [ ] Support for other models
+- [ ] LangChain integration
 - [ ] User profiles & authentication
-- [ ] Different prompt options
-- [ ] LangChain integration with a custom LLM
-- [ ] Support for other llama models, quantization, etc.
 
 And a lot more!
